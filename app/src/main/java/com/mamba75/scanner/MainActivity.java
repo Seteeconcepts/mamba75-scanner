@@ -1,9 +1,8 @@
 package com.mamba75.scanner;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -69,6 +68,9 @@ public class MainActivity extends Activity {
         } else {
             startService(serviceIntent);
         }
+        // Save running state
+        getSharedPreferences("scanner_prefs", MODE_PRIVATE)
+            .edit().putBoolean("scanner_running", true).apply();
         updateUI();
         // Move app to background so user can see the floating scanner
         moveTaskToBack(true);
@@ -76,11 +78,14 @@ public class MainActivity extends Activity {
 
     private void onStopClicked() {
         stopService(new Intent(this, FloatingWindowService.class));
+        // Save stopped state
+        getSharedPreferences("scanner_prefs", MODE_PRIVATE)
+            .edit().putBoolean("scanner_running", false).apply();
         updateUI();
     }
 
     private void updateUI() {
-        boolean running = isServiceRunning(FloatingWindowService.class);
+        boolean running = isServiceRunning();
 
         if (running) {
             tvStatus.setText("🟢  SCANNER RUNNING");
@@ -110,13 +115,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    @SuppressWarnings({"deprecation", "unchecked"})
-    private boolean isServiceRunning(Class serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) return true;
-        }
-        return false;
+    private boolean isServiceRunning() {
+        SharedPreferences prefs = getSharedPreferences("scanner_prefs", MODE_PRIVATE);
+        return prefs.getBoolean("scanner_running", false);
     }
 
     @Override
