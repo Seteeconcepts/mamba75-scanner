@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mamba75 Scanner v3</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #050c14; color: #e2e8f0; font-family: 'Outfit', sans-serif; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0a1520; }
+  ::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 4px; }
+
+  @keyframes pulse      { 0%,100%{opacity:1} 50%{opacity:.3} }
+  @keyframes blink      { 0%,100%{opacity:1} 50%{opacity:.2} }
+  @keyframes glow       { 0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)} 50%{box-shadow:0 0 18px 4px rgba(251,191,36,0.3)} }
+  @keyframes glowGreen  { 0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}  50%{box-shadow:0 0 24px 6px rgba(34,197,94,0.35)} }
+  @keyframes spin       { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes fadeIn     { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes countPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+
+  .pulse     { animation: pulse      1.6s ease-in-out infinite; }
+  .blink     { animation: blink      0.5s ease-in-out 5; }
+  .glow      { animation: glow       1.2s ease-in-out infinite; }
+  .glowGreen { animation: glowGreen  1.4s ease-in-out infinite; }
+  .spin      { animation: spin       1s   linear     infinite; }
+  .fade-in   { animation: fadeIn     0.4s ease-out   both; }
+  .cntpulse  { animation: countPulse 1s   ease-in-out infinite; }
+
+  /* LAUNCH */
+  #launch { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:32px 20px; }
+  .logo-main { font-family:'JetBrains Mono',monospace; font-size:38px; font-weight:700; letter-spacing:.14em; margin-bottom:8px; }
+  .logo-sub  { font-family:'JetBrains Mono',monospace; font-size:10px; color:#334155; letter-spacing:.18em; margin-bottom:48px; }
+  .index-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; max-width:460px; margin-bottom:48px; }
+  .index-pill { background:#0c1924; border-radius:8px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .tier-badge { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:.1em; padding:2px 7px; border-radius:4px; }
+  .tier-std   { background:#0c2a1a; color:#4ade80; border:1px solid #1a4a2a; }
+  .tier-1s    { background:#0c2a4a; color:#60a5fa; border:1px solid #1e4a7a; }
+  #startBtn { background:linear-gradient(135deg,#0ea5e9,#38bdf8); border:none; border-radius:14px; padding:18px 60px; font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; letter-spacing:.2em; color:#000; cursor:pointer; box-shadow:0 0 36px rgba(14,165,233,.45); transition:transform .15s,box-shadow .15s; }
+  #startBtn:hover  { transform:scale(1.04); box-shadow:0 0 48px rgba(14,165,233,.6); }
+  #startBtn:active { transform:scale(.97); }
+  .launch-note { font-family:'JetBrains Mono',monospace; font-size:10px; color:#334155; margin-top:14px; letter-spacing:.1em; }
+
+  /* APP */
+  #app { display:none; flex-direction:column; min-height:100vh; }
+
+  /* HEADER */
+  #header { background:linear-gradient(180deg,#0a1824 0%,#050c14 100%); border-bottom:1px solid #0f2030; padding:0 20px; position:sticky; top:0; z-index:10; }
+  .header-top   { display:flex; align-items:center; justify-content:space-between; padding:14px 0 10px; gap:12px; flex-wrap:wrap; }
+  .logo-sm      { font-family:'JetBrains Mono',monospace; font-size:17px; font-weight:700; letter-spacing:.12em; }
+  .header-stats { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .hstat-label  { font-family:'JetBrains Mono',monospace; font-size:8px; color:#334155; letter-spacing:.12em; margin-bottom:2px; }
+  .hstat-val    { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; }
+  #statusDot    { width:8px; height:8px; border-radius:50%; background:#475569; display:inline-block; }
+  #statusSpinner { width:8px; height:8px; border:2px solid #fbbf24; border-top-color:transparent; border-radius:50%; display:none; }
+  #statusText   { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; color:#475569; }
+  #stopBtn { background:#1a0a0a; border:1px solid #7f1d1d; border-radius:8px; padding:6px 14px; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.12em; color:#ef4444; cursor:pointer; transition:all .2s; }
+  #stopBtn:hover { background:#7f1d1d; color:#fff; }
+
+  /* TABS */
+  .tabs { display:flex; }
+  .tab-btn { background:none; border:none; cursor:pointer; padding:9px 18px; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:#334155; border-bottom:2px solid transparent; transition:all .2s; outline:none; }
+  .tab-btn.active { color:#38bdf8; border-bottom-color:#38bdf8; }
+
+  /* SCANNER */
+  #scannerView { padding:16px 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px; }
+  .card { background:linear-gradient(140deg,#0c1924,#080f18); border-radius:12px; padding:16px; position:relative; overflow:hidden; transition:border-color .3s,background .3s; }
+  .card-accent { position:absolute; top:0; left:0; right:0; height:2px; opacity:.5; }
+  .card.signal { background:linear-gradient(140deg,#1a1100,#0d1924); }
+  .card.signal .card-accent { opacity:1; }
+  .card-header  { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+  .card-sym     { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; letter-spacing:.05em; }
+  .card-name    { font-size:10px; color:#334155; margin-top:2px; }
+  .card-badges  { display:flex; align-items:center; gap:5px; }
+  .sig-badge    { font-family:'JetBrains Mono',monospace; background:#fbbf24; color:#000; font-size:8px; font-weight:700; padding:2px 6px; border-radius:4px; letter-spacing:.1em; }
+  .conn-dot     { width:6px; height:6px; border-radius:50%; background:#374151; }
+  .price-row    { display:flex; align-items:baseline; gap:8px; margin-bottom:14px; }
+  .price-val    { font-family:'JetBrains Mono',monospace; font-size:19px; font-weight:700; color:#f1f5f9; }
+  .dir-arrow    { font-size:16px; }
+  .waiting-txt  { font-family:'JetBrains Mono',monospace; font-size:9px; color:#334155; }
+  .digit-row    { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .digit-label  { font-family:'JetBrains Mono',monospace; font-size:8px; color:#334155; letter-spacing:.15em; margin-bottom:4px; }
+  .digit-val    { font-family:'JetBrains Mono',monospace; font-size:30px; font-weight:700; line-height:1; transition:color .1s; }
+  .trail-label  { font-family:'JetBrains Mono',monospace; font-size:8px; color:#334155; letter-spacing:.1em; margin-bottom:5px; }
+  .trail-grid   { display:flex; flex-wrap:wrap; gap:3px; }
+  .trail-cell   { width:17px; height:17px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; }
+  .wr-header    { display:flex; justify-content:space-between; margin-bottom:4px; }
+  .wr-label     { font-family:'JetBrains Mono',monospace; font-size:8px; color:#334155; letter-spacing:.12em; }
+  .wr-pct       { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; }
+  .wr-track     { background:#0a1724; border-radius:4px; height:5px; overflow:hidden; margin-bottom:12px; }
+  .wr-fill      { height:100%; border-radius:4px; transition:width .5s ease; }
+  .stats-row    { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+  .stat-pill    { background:#080f18; border:1px solid #0f2030; border-radius:6px; padding:5px 3px; text-align:center; }
+  .stat-lbl     { font-family:'JetBrains Mono',monospace; font-size:7px; color:#334155; letter-spacing:.1em; margin-bottom:2px; }
+  .stat-num     { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; }
+
+  /* LEADERBOARD */
+  #leaderboardView { padding:16px 20px; max-width:860px; margin:0 auto; display:none; }
+  .lb-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+  .lb-note   { font-family:'JetBrains Mono',monospace; font-size:9px; color:#334155; letter-spacing:.15em; }
+  #freezeBtn { background:#0c2a4a; border:1px solid #1e4a7a; border-radius:8px; padding:7px 16px; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; letter-spacing:.1em; color:#60a5fa; cursor:pointer; white-space:nowrap; transition:all .2s; }
+  #freezeBtn.frozen { background:#1a1200; border-color:#fbbf24; color:#fbbf24; }
+
+  /* HOW TO USE */
+  .how-to-use  { background:#0a1f14; border:1px solid #14532d; border-radius:10px; padding:14px 18px; margin-bottom:16px; }
+  .how-title   { font-family:'JetBrains Mono',monospace; font-size:9px; color:#4ade80; letter-spacing:.15em; font-weight:700; margin-bottom:10px; }
+  .how-steps   { display:flex; flex-direction:column; gap:8px; }
+  .how-step    { display:flex; gap:10px; }
+  .how-num     { font-family:'JetBrains Mono',monospace; color:#fbbf24; min-width:18px; font-size:12px; flex-shrink:0; }
+  .how-text    { font-family:'JetBrains Mono',monospace; font-size:10px; color:#64748b; }
+  .how-text .hl-w { color:#e2e8f0; }
+  .how-text .hl-b { color:#60a5fa; }
+  .how-text .hl-g { color:#22c55e; }
+
+  /* TRADE BANNER */
+  #tradeBanner { display:none; margin-bottom:16px; }
+  .banner-inner { background:linear-gradient(135deg,#052010,#0a2a14); border:2px solid #22c55e; border-radius:14px; padding:20px; position:relative; overflow:hidden; }
+  .banner-tag   { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:700; letter-spacing:.2em; color:#4ade80; margin-bottom:10px; }
+  .banner-pair  { font-family:'JetBrains Mono',monospace; font-size:32px; font-weight:700; margin-bottom:4px; }
+  .banner-sub   { font-size:11px; color:#475569; margin-bottom:16px; }
+  .banner-stats { display:flex; gap:24px; margin-bottom:20px; flex-wrap:wrap; }
+  .bstat        { text-align:center; }
+  .bstat-label  { font-family:'JetBrains Mono',monospace; font-size:8px; color:#334155; letter-spacing:.12em; margin-bottom:4px; }
+  .bstat-val    { font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; }
+  .banner-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .countdown-wrap { display:flex; align-items:center; gap:10px; }
+  .countdown-label { font-family:'JetBrains Mono',monospace; font-size:9px; color:#475569; letter-spacing:.1em; }
+  #countdown    { font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:#22c55e; min-width:60px; }
+  #countdown.urgent { color:#ef4444; }
+  .scanning-note { font-family:'JetBrains Mono',monospace; font-size:9px; color:#334155; letter-spacing:.1em; }
+  #refreshBtn { background:linear-gradient(135deg,#0ea5e9,#38bdf8); border:none; border-radius:10px; padding:12px 28px; font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; letter-spacing:.15em; color:#000; cursor:pointer; box-shadow:0 0 20px rgba(14,165,233,.4); transition:transform .15s,box-shadow .15s; white-space:nowrap; }
+  #refreshBtn:hover  { transform:scale(1.04); box-shadow:0 0 30px rgba(14,165,233,.6); }
+  #refreshBtn:active { transform:scale(.97); }
+
+  /* SCANNING BAR — FIX: no inline display style; JS controls it entirely */
+  #scanningBar { background:#0c1924; border:1px solid #1e3a5f; border-radius:10px; padding:12px 18px; margin-bottom:14px; align-items:center; gap:10px; display:none; }
+
+  /* LB LIST */
+  .lb-list   { display:flex; flex-direction:column; gap:8px; }
+  .lb-row    { background:#0c1924; border:1px solid #0f2030; border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:14px; animation:fadeIn .35s ease-out both; }
+  .lb-row.gold { background:linear-gradient(135deg,#1a1200,#0c1924); border-color:#fbbf2440; }
+  .lb-rank   { min-width:32px; text-align:center; font-size:18px; }
+  .lb-info   { flex:1; }
+  .lb-sym    { font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; display:flex; align-items:center; gap:7px; margin-bottom:3px; }
+  .lb-name   { font-size:10px; color:#334155; }
+  .lb-col    { text-align:center; }
+  .lb-clabel { font-family:'JetBrains Mono',monospace; font-size:7px; color:#334155; letter-spacing:.1em; margin-bottom:2px; }
+  .lb-cval   { font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; }
+  .lb-score-wrap { min-width:110px; }
+  .lb-score-hdr  { display:flex; justify-content:space-between; margin-bottom:4px; }
+  .lb-score-lbl  { font-family:'JetBrains Mono',monospace; font-size:7px; color:#334155; letter-spacing:.1em; }
+  .lb-score-num  { font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; color:#38bdf8; }
+  .score-track   { background:#080f18; border-radius:4px; height:5px; overflow:hidden; }
+  .score-fill    { height:100%; border-radius:4px; background:linear-gradient(90deg,#0ea5e9,#818cf8); transition:width .8s ease; }
+  .trading-badge { font-family:'JetBrains Mono',monospace; background:#14532d; color:#4ade80; font-size:8px; font-weight:700; padding:2px 6px; border-radius:4px; letter-spacing:.1em; }
+
+  /* FORMULA */
+  .formula-box   { margin-top:20px; padding:14px 18px; background:#0c1924; border:1px solid #0f2030; border-radius:10px; }
+  .formula-title { font-family:'JetBrains Mono',monospace; font-size:9px; color:#475569; letter-spacing:.15em; font-weight:700; margin-bottom:10px; }
+  .formula-grid  { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .formula-k     { font-family:'JetBrains Mono',monospace; font-size:8px; color:#334155; letter-spacing:.1em; margin-bottom:2px; }
+  .formula-v     { font-family:'JetBrains Mono',monospace; font-size:10px; color:#64748b; }
+</style>
+</head>
+<body>
+
+<!-- LAUNCH -->
+<div id="launch">
+  <div class="logo-main"><span style="color:#38bdf8">MAMBA</span><span style="color:#fbbf24">75</span><span style="color:#334155;font-size:18px;letter-spacing:.2em;margin-left:10px">SCANNER</span></div>
+  <div class="logo-sub">DIGIT OVER &nbsp;·&nbsp; ENTRY: LAST DIGIT 4 | 5 + RISE &nbsp;·&nbsp; RECOVERY MARTINGALE</div>
+  <div class="index-grid" id="previewGrid"></div>
+  <button id="startBtn" onclick="startScanning()">▶ &nbsp;START SCANNING</button>
+  <div class="launch-note">CONNECTS LIVE TO DERIV WEBSOCKET API</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="header">
+    <div class="header-top">
+      <div>
+        <div class="logo-sm"><span style="color:#38bdf8">MAMBA</span><span style="color:#fbbf24">75</span><span style="color:#475569;font-size:12px;letter-spacing:.2em;margin-left:8px">SCANNER</span></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#334155;margin-top:2px;letter-spacing:.12em">DIGIT OVER · ENTRY: LAST DIGIT 4|5 + RISE · PREDICTION: OVER 4</div>
+      </div>
+      <div class="header-stats">
+        <div><div class="hstat-label">TICKS</div><div class="hstat-val" id="hTicks" style="color:#475569">0</div></div>
+        <div><div class="hstat-label">SIGNALS</div><div class="hstat-val" id="hSignals" style="color:#fbbf24">0</div></div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div id="statusSpinner" class="spin"></div>
+          <div id="statusDot"></div>
+          <span id="statusText">IDLE</span>
+        </div>
+        <div><div class="hstat-label">SESSION</div><div class="hstat-val" id="hTimer" style="color:#334155">00:00:00</div></div>
+        <button id="stopBtn" onclick="stopScanning()">■ STOP</button>
+      </div>
+    </div>
+    <!-- FIX: pass `this` explicitly — no implicit event object (was broken in v1) -->
+    <div class="tabs">
+      <button class="tab-btn active"  onclick="switchTab('scanner',this)">Scanner</button>
+      <button class="tab-btn"         onclick="switchTab('leaderboard',this)">Leaderboard</button>
+    </div>
+  </div>
+
+  <div id="scannerView"></div>
+
+  <div id="leaderboardView">
+    <div class="lb-topbar">
+      <div class="lb-note">RANKED BY PERFORMANCE SCORE &nbsp;·&nbsp; AUTO-PAUSES AT ≥55% WIN RATE + 5 SIGNALS</div>
+      <button id="freezeBtn" onclick="toggleFreeze()">❄ FREEZE RANKINGS</button>
+    </div>
+
+    <!-- HOW TO USE (v1 guide, updated with v2 auto-pause workflow) -->
+    <div class="how-to-use">
+      <div class="how-title">✅ HOW TO USE THESE RESULTS</div>
+      <div class="how-steps">
+        <div class="how-step"><span class="how-num">1.</span><span class="how-text">Let it run at least <span class="hl-w">5–10 minutes</span> so each index collects enough signals to be reliable.</span></div>
+        <div class="how-step"><span class="how-num">2.</span><span class="how-text">The scanner <span class="hl-w">auto-pauses</span> and shows a <span class="hl-g">🎯 TRADE NOW banner</span> when the #1 pair hits <span class="hl-g">≥55% win rate</span> with 5+ signals.</span></div>
+        <div class="how-step"><span class="how-num">3.</span><span class="how-text">You have <span class="hl-w">3 minutes</span> on the countdown — go to Deriv DBot, select that index, and run your Mamba75 bot.</span></div>
+        <div class="how-step"><span class="how-num">4.</span><span class="how-text">Press <span class="hl-b">↻ REFRESH — NEXT PAIR</span> after trading to unlock the scanner and find the next best opportunity.</span></div>
+        <div class="how-step"><span class="how-num">5.</span><span class="how-text">Use <span class="hl-b">❄ FREEZE RANKINGS</span> anytime to lock the list. Re-scan every 30–60 minutes as market conditions change.</span></div>
+      </div>
+    </div>
+
+    <!-- TRADE BANNER -->
+    <div id="tradeBanner">
+      <div class="banner-inner glowGreen">
+        <div class="banner-tag">🎯 TRADE NOW — TOP PAIR LOCKED IN</div>
+        <div class="banner-pair" id="bannerPair">—</div>
+        <div class="banner-sub"  id="bannerName">—</div>
+        <div class="banner-stats">
+          <div class="bstat"><div class="bstat-label">WIN RATE</div><div class="bstat-val" id="bannerWR"    style="color:#22c55e">—</div></div>
+          <div class="bstat"><div class="bstat-label">SCORE</div>   <div class="bstat-val" id="bannerScore" style="color:#38bdf8">—</div></div>
+          <div class="bstat"><div class="bstat-label">W / L</div>   <div class="bstat-val" id="bannerWL"    style="font-size:16px">—</div></div>
+          <div class="bstat"><div class="bstat-label">SIGNALS</div> <div class="bstat-val" id="bannerSig"   style="color:#fbbf24">—</div></div>
+        </div>
+        <div class="banner-bottom">
+          <div class="countdown-wrap">
+            <div>
+              <div class="countdown-label">TIME TO TRADE</div>
+              <div id="countdown" class="cntpulse">3:00</div>
+            </div>
+            <div class="scanning-note">⟳ Scanner still<br>running in background</div>
+          </div>
+          <button id="refreshBtn" onclick="refreshLeaderboard()">↻ &nbsp;REFRESH — NEXT PAIR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCANNING BAR — FIX: display:none set here in CSS, not duplicated in inline style -->
+    <div id="scanningBar">
+      <div class="spin" style="width:10px;height:10px;border:2px solid #38bdf8;border-top-color:transparent;border-radius:50%;flex-shrink:0"></div>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#475569;letter-spacing:.1em">SCANNING FOR NEXT OPPORTUNITY — WIN RATE ≥ 55%...</span>
+    </div>
+
+    <div class="lb-list" id="lbList"></div>
+
+    <!-- Formula box — merged from both versions -->
+    <div class="formula-box">
+      <div class="formula-title">📊 SCORE FORMULA & WORKFLOW</div>
+      <div class="formula-grid">
+        <div><div class="formula-k">FORMULA</div>       <div class="formula-v">WinRate × 0.65 + min(SignalFreq × 5, 100) × 0.35</div></div>
+        <div><div class="formula-k">ENTRY CONDITION</div><div class="formula-v">Last digit = 4 or 5 AND price direction = RISE</div></div>
+        <div><div class="formula-k">WIN CONDITION</div>  <div class="formula-v">Next tick's last digit > 4 (digits 5, 6, 7, 8, 9)</div></div>
+        <div><div class="formula-k">AUTO-PAUSE</div>     <div class="formula-v">Triggers when #1 pair hits ≥55% win rate with 5+ signals</div></div>
+        <div><div class="formula-k">TIMER</div>          <div class="formula-v">3 minutes to place trades on the highlighted pair</div></div>
+        <div><div class="formula-k">BACKGROUND</div>     <div class="formula-v">Scanner never stops — always collecting fresh data</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYMBOLS = [
+  { id:"R_10",    name:"Volatility 10",       short:"V10",     vol:10,  tier:"STD", pip:0.001  },
+  { id:"R_25",    name:"Volatility 25",       short:"V25",     vol:25,  tier:"STD", pip:0.001  },
+  { id:"R_50",    name:"Volatility 50",       short:"V50",     vol:50,  tier:"STD", pip:0.01   },
+  { id:"R_75",    name:"Volatility 75",       short:"V75",     vol:75,  tier:"STD", pip:0.0001 },
+  { id:"R_100",   name:"Volatility 100",      short:"V100",    vol:100, tier:"STD", pip:0.01   },
+  { id:"1HZ10V",  name:"Volatility 10 (1s)",  short:"V10 1s",  vol:10,  tier:"1S",  pip:0.001  },
+  { id:"1HZ25V",  name:"Volatility 25 (1s)",  short:"V25 1s",  vol:25,  tier:"1S",  pip:0.001  },
+  { id:"1HZ50V",  name:"Volatility 50 (1s)",  short:"V50 1s",  vol:50,  tier:"1S",  pip:0.01   },
+  { id:"1HZ75V",  name:"Volatility 75 (1s)",  short:"V75 1s",  vol:75,  tier:"1S",  pip:0.0001 },
+  { id:"1HZ100V", name:"Volatility 100 (1s)", short:"V100 1s", vol:100, tier:"1S",  pip:0.01   },
+];
+
+// Named constants (from v2)
+const TRADE_SECS   = 180;
+const MIN_WIN_RATE = 55;
+const MIN_SIGNALS  = 5;
+
+const VOL_COLOR  = { 10:"#4ade80", 25:"#22d3ee", 50:"#a78bfa", 75:"#fb923c", 100:"#f87171" };
+const volColor   = v => VOL_COLOR[v] || "#94a3b8";
+const digitColor = d => {
+  if (d===null) return "#374151";
+  if (d===4)    return "#fbbf24";
+  if (d===5)    return "#f97316";
+  if (d>=6)     return "#4ade80";
+  if (d===0)    return "#6b7280";
+  return "#60a5fa";
+};
+const getLastDigit = (price,pip) => {
+  const dec = Math.max(0, Math.round(-Math.log10(pip)));
+  return Math.abs(Math.round(price * Math.pow(10,dec))) % 10;
+};
+const fmtPrice = (price,pip) => {
+  if (!price) return "—";
+  return price.toFixed(Math.max(0, Math.round(-Math.log10(pip))));
+};
+const fmtTime = s => [Math.floor(s/3600),Math.floor((s%3600)/60),s%60].map(v=>String(v).padStart(2,"0")).join(":");
+const fmtCnt  = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+
+// STATE
+let state         = {};
+let ws            = null;
+let timerInterval = null;
+let sessionStart  = null;
+// FIX: default matches the active tab button in HTML
+let currentTab    = "scanner";
+// Freeze (v1) + auto-pause (v2) coexist independently
+let frozen        = false;
+let autoPaused    = false;
+let currentPair   = null;
+let countdownSecs = TRADE_SECS;
+let countdownInt  = null;
+
+function resetState() {
+  state = {};
+  SYMBOLS.forEach(s => {
+    state[s.id] = { price:null,prevPrice:null,lastDigit:null,direction:null,
+      pendingSignal:null,signals:0,wins:0,losses:0,ticks:0,
+      recentDigits:[],connected:false,lastSignalTick:-99,pip:s.pip };
+  });
+}
+
+// PREVIEW GRID
+(function(){
+  const grid = document.getElementById("previewGrid");
+  SYMBOLS.forEach(s => {
+    const p = document.createElement("div");
+    p.className = "index-pill";
+    p.style.border = `1px solid ${volColor(s.vol)}22`;
+    p.innerHTML = `<span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:${volColor(s.vol)}">${s.short}</span><span class="tier-badge ${s.tier==='STD'?'tier-std':'tier-1s'}">${s.tier==='STD'?'STD':'1-SEC'}</span>`;
+    grid.appendChild(p);
+  });
+})();
+
+// BUILD SCANNER CARDS
+function buildCards() {
+  const view = document.getElementById("scannerView");
+  view.innerHTML = "";
+  SYMBOLS.forEach(s => {
+    const ac   = volColor(s.vol);
+    const card = document.createElement("div");
+    card.className = "card fade-in";
+    card.id = `card-${s.id}`;
+    card.style.border = `1px solid ${ac}20`;
+    card.innerHTML = `
+      <div class="card-accent" id="accent-${s.id}" style="background:${ac}"></div>
+      <div class="card-header">
+        <div><div class="card-sym" style="color:${ac}">${s.short}</div><div class="card-name">${s.name}</div></div>
+        <div class="card-badges" id="badges-${s.id}">
+          <span class="tier-badge ${s.tier==='STD'?'tier-std':'tier-1s'}">${s.tier==='STD'?'STD':'1-SEC'}</span>
+          <div class="conn-dot" id="dot-${s.id}"></div>
+        </div>
+      </div>
+      <div class="price-row">
+        <span class="price-val"   id="price-${s.id}">—</span>
+        <span class="dir-arrow"   id="dir-${s.id}"></span>
+        <span class="waiting-txt" id="wait-${s.id}">connecting...</span>
+      </div>
+      <div class="digit-row">
+        <div><div class="digit-label">LAST DIGIT</div><div class="digit-val" id="digit-${s.id}" style="color:#1e3a5f">—</div></div>
+        <div><div class="trail-label">TRAIL (LAST 10)</div><div class="trail-grid" id="trail-${s.id}"></div></div>
+      </div>
+      <div class="wr-header"><span class="wr-label">WIN RATE</span><span class="wr-pct" id="wr-${s.id}" style="color:#374151">—</span></div>
+      <div class="wr-track"><div class="wr-fill" id="wrbar-${s.id}" style="width:0%"></div></div>
+      <div class="stats-row">
+        <div class="stat-pill"><div class="stat-lbl">TICKS</div><div class="stat-num" id="st-ticks-${s.id}" style="color:#475569">0</div></div>
+        <div class="stat-pill"><div class="stat-lbl">SIG</div>  <div class="stat-num" id="st-sig-${s.id}"   style="color:#fbbf24">0</div></div>
+        <div class="stat-pill"><div class="stat-lbl">WIN</div>  <div class="stat-num" id="st-win-${s.id}"   style="color:#22c55e">0</div></div>
+        <div class="stat-pill"><div class="stat-lbl">LOSS</div> <div class="stat-num" id="st-loss-${s.id}"  style="color:#ef4444">0</div></div>
+      </div>`;
+    view.appendChild(card);
+  });
+}
+
+// UPDATE CARD DOM
+function updateCard(symId) {
+  const d = state[symId];
+  const s = SYMBOLS.find(x=>x.id===symId);
+  if (!d||!s) return;
+  const ac       = volColor(s.vol);
+  const isSignal = d.ticks>0 && (d.ticks-d.lastSignalTick)<=2;
+  const total    = d.wins+d.losses;
+  // FIX: consistent ≥55/≥45 thresholds across card and leaderboard (v1 card used ≥50/≥40)
+  const winRate  = total>=3 ? (d.wins/total)*100 : null;
+  const card = document.getElementById(`card-${symId}`);
+  if (!card) return;
+
+  if (isSignal) {
+    card.className = "card signal glow"; card.style.border = "1px solid #fbbf24";
+    document.getElementById(`accent-${symId}`).style.cssText = "background:#fbbf24;opacity:1";
+    const badges = document.getElementById(`badges-${symId}`);
+    if (!badges.querySelector(".sig-badge")) {
+      const sb = document.createElement("span"); sb.className="sig-badge blink"; sb.textContent="SIGNAL!"; badges.prepend(sb);
+    }
+  } else {
+    card.className = "card"; card.style.border = `1px solid ${ac}20`;
+    document.getElementById(`accent-${symId}`).style.cssText = `background:${ac};opacity:0.5`;
+    document.getElementById(`badges-${symId}`)?.querySelector(".sig-badge")?.remove();
+  }
+
+  const dot = document.getElementById(`dot-${symId}`);
+  dot.style.background = d.connected?"#22c55e":"#374151";
+  dot.className = d.connected?"conn-dot pulse":"conn-dot";
+
+  document.getElementById(`price-${symId}`).textContent = fmtPrice(d.price,d.pip);
+  const dirEl = document.getElementById(`dir-${symId}`);
+  if (d.direction==="rise")     { dirEl.textContent="↑"; dirEl.style.color="#22c55e"; }
+  else if (d.direction==="fall"){ dirEl.textContent="↓"; dirEl.style.color="#ef4444"; }
+  if (d.ticks>0) document.getElementById(`wait-${symId}`).style.display="none";
+
+  const dc = d.lastDigit!==null ? digitColor(d.lastDigit) : "#1e3a5f";
+  const digitEl = document.getElementById(`digit-${symId}`);
+  digitEl.textContent  = d.lastDigit!==null ? d.lastDigit : "—";
+  digitEl.style.color  = dc;
+  digitEl.style.textShadow = (d.lastDigit===4||d.lastDigit===5) ? `0 0 16px ${dc}` : "none";
+
+  const trail = document.getElementById(`trail-${symId}`);
+  trail.innerHTML = "";
+  d.recentDigits.forEach(dg => {
+    const c=digitColor(dg), cell=document.createElement("div");
+    cell.className="trail-cell";
+    cell.style.cssText=`background:${c}18;border:1px solid ${c}44;color:${c}`;
+    cell.textContent=dg; trail.appendChild(cell);
+  });
+
+  const wrEl=document.getElementById(`wr-${symId}`), wrBar=document.getElementById(`wrbar-${symId}`);
+  if (winRate!==null) {
+    const wrc  = winRate>=55?"#22c55e":winRate>=45?"#fbbf24":"#ef4444";
+    const wrbg = winRate>=55?"linear-gradient(90deg,#16a34a,#22c55e)":winRate>=45?"linear-gradient(90deg,#d97706,#fbbf24)":"linear-gradient(90deg,#b91c1c,#ef4444)";
+    wrEl.textContent=winRate.toFixed(1)+"%"; wrEl.style.color=wrc;
+    wrBar.style.width=winRate+"%"; wrBar.style.background=wrbg;
+  } else {
+    wrEl.textContent=total<3?`${total}/3 trades`:"—"; wrEl.style.color="#374151"; wrBar.style.width="0%";
+  }
+  document.getElementById(`st-ticks-${symId}`).textContent = d.ticks;
+  document.getElementById(`st-sig-${symId}`).textContent   = d.signals;
+  document.getElementById(`st-win-${symId}`).textContent   = d.wins;
+  document.getElementById(`st-loss-${symId}`).textContent  = d.losses;
+}
+
+// RANK SYMBOLS — extracted reusable fn (from v2)
+function getRanked() {
+  return SYMBOLS.map(s => {
+    const d       = state[s.id];
+    const total   = d.wins+d.losses;
+    const winRate = total>=3 ? (d.wins/total)*100 : null;
+    const sigFreq = d.ticks>10 ? (d.signals/d.ticks)*100 : 0;
+    const score   = winRate!==null ? winRate*0.65+Math.min(sigFreq*5,100)*0.35 : -1;
+    return { ...s,...d, total, winRate, sigFreq, score };
+  }).sort((a,b)=>b.score-a.score);
+}
+
+// COUNTDOWN
+function startCountdown() {
+  clearInterval(countdownInt);
+  countdownSecs = TRADE_SECS;
+  renderCountdown();
+  countdownInt = setInterval(()=>{
+    countdownSecs--;
+    renderCountdown();
+    if (countdownSecs<=0) { clearInterval(countdownInt); refreshLeaderboard(); }
+  }, 1000);
+}
+function renderCountdown() {
+  const el = document.getElementById("countdown");
+  el.textContent = fmtCnt(countdownSecs);
+  el.className   = countdownSecs<=30 ? "cntpulse urgent" : "cntpulse";
+}
+
+// SHOW TRADE BANNER
+function showBanner(sym) {
+  const d       = state[sym.id];
+  const total   = d.wins+d.losses;
+  const winRate = total>=3 ? (d.wins/total)*100 : null;
+  const sigFreq = d.ticks>10 ? (d.signals/d.ticks)*100 : 0;
+  const score   = winRate!==null ? winRate*0.65+Math.min(sigFreq*5,100)*0.35 : 0;
+  const ac      = volColor(sym.vol);
+  document.getElementById("bannerPair").textContent  = sym.short;
+  document.getElementById("bannerPair").style.color  = ac;
+  document.getElementById("bannerName").textContent  = sym.name;
+  document.getElementById("bannerWR").textContent    = winRate!==null ? winRate.toFixed(1)+"%" : "—";
+  document.getElementById("bannerScore").textContent = score.toFixed(1);
+  document.getElementById("bannerWL").innerHTML      = `<span style="color:#22c55e">${d.wins}</span><span style="color:#475569"> / </span><span style="color:#ef4444">${d.losses}</span>`;
+  document.getElementById("bannerSig").textContent   = d.signals;
+  document.getElementById("tradeBanner").style.display = "block";
+  setScanningBar(false);
+  startCountdown();
+}
+
+// REFRESH (manual or after countdown)
+function refreshLeaderboard() {
+  clearInterval(countdownInt);
+  autoPaused  = false;
+  currentPair = null;
+  document.getElementById("tradeBanner").style.display = "none";
+  setScanningBar(true);
+  // Re-render list; if a new pair qualifies immediately, banner re-appears
+  updateLeaderboard();
+  if (!autoPaused) setScanningBar(true);
+}
+
+// FREEZE TOGGLE (from v1)
+function toggleFreeze() {
+  frozen = !frozen;
+  const btn = document.getElementById("freezeBtn");
+  if (frozen) {
+    btn.textContent = "▶ UNFREEZE RANKINGS";
+    btn.classList.add("frozen");
+  } else {
+    btn.textContent = "❄ FREEZE RANKINGS";
+    btn.classList.remove("frozen");
+    if (!autoPaused) updateLeaderboard();
+  }
+}
+
+// SCANNING BAR HELPER — single place controls display (fixes double display:none bug)
+function setScanningBar(visible) {
+  document.getElementById("scanningBar").style.display = visible ? "flex" : "none";
+}
+
+// UPDATE LEADERBOARD — respects both freeze and auto-pause
+function updateLeaderboard() {
+  if (frozen || autoPaused) return;
+  const ranked = getRanked();
+  const list   = document.getElementById("lbList");
+  const medals = ["🥇","🥈","🥉"];
+  list.innerHTML = "";
+
+  ranked.forEach((sym,idx) => {
+    const hasData   = sym.winRate!==null;
+    const ac        = volColor(sym.vol);
+    const barW      = hasData ? Math.min(Math.max(sym.score,0),100) : 0;
+    const wrc       = !hasData?"#1e3a5f":sym.winRate>=55?"#22c55e":sym.winRate>=45?"#fbbf24":"#ef4444";
+    const isCurrent = currentPair && sym.id===currentPair.id;
+    const row = document.createElement("div");
+    row.className = `lb-row${idx===0&&hasData?" gold":""}`;
+    if (isCurrent) row.style.outline = "2px solid #22c55e";
+    row.innerHTML = `
+      <div class="lb-rank">${hasData?(medals[idx]||"#"+(idx+1)):"—"}</div>
+      <div class="lb-info">
+        <div class="lb-sym">
+          <span style="color:${ac}">${sym.short}</span>
+          <span class="tier-badge ${sym.tier==='STD'?'tier-std':'tier-1s'}">${sym.tier==='STD'?'STD':'1-SEC'}</span>
+          ${isCurrent?'<span class="trading-badge">TRADING</span>':''}
+        </div>
+        <div class="lb-name">${sym.name}</div>
+      </div>
+      <div class="lb-col" style="min-width:50px"><div class="lb-clabel">SIG</div><div class="lb-cval" style="color:#fbbf24">${sym.signals}</div></div>
+      <div class="lb-col" style="min-width:64px">
+        <div class="lb-clabel">W / L</div>
+        <div class="lb-cval" style="font-size:13px"><span style="color:#22c55e">${sym.wins}</span><span style="color:#334155">/</span><span style="color:#ef4444">${sym.losses}</span></div>
+      </div>
+      <div class="lb-col" style="min-width:68px"><div class="lb-clabel">WIN RATE</div><div class="lb-cval" style="color:${wrc}">${hasData?sym.winRate.toFixed(1)+"%":"—"}</div></div>
+      <div class="lb-score-wrap">
+        <div class="lb-score-hdr"><span class="lb-score-lbl">SCORE</span><span class="lb-score-num">${hasData?sym.score.toFixed(1):"—"}</span></div>
+        <div class="score-track"><div class="score-fill" style="width:${barW}%"></div></div>
+      </div>`;
+    list.appendChild(row);
+  });
+
+  // Auto-pause check
+  const top = ranked[0];
+  if (top.winRate!==null && top.winRate>=MIN_WIN_RATE && top.signals>=MIN_SIGNALS) {
+    autoPaused  = true;
+    currentPair = top;
+    showBanner(top);
+  }
+}
+
+// HEADER STATS
+function updateHeader() {
+  const ticks   = Object.values(state).reduce((s,d)=>s+d.ticks,0);
+  const signals = Object.values(state).reduce((s,d)=>s+d.signals,0);
+  document.getElementById("hTicks").textContent   = ticks.toLocaleString();
+  document.getElementById("hSignals").textContent = signals;
+}
+
+// STATUS
+function setStatus(status) {
+  const dot=document.getElementById("statusDot"), spinner=document.getElementById("statusSpinner"), text=document.getElementById("statusText");
+  const colors = { idle:"#475569",connecting:"#fbbf24",connected:"#22c55e",error:"#ef4444",disconnected:"#6b7280" };
+  text.textContent=status.toUpperCase(); text.style.color=colors[status]||"#475569";
+  if (status==="connecting") { spinner.style.display="block"; dot.style.display="none"; }
+  else { spinner.style.display="none"; dot.style.display="inline-block"; dot.style.background=colors[status]||"#475569"; dot.className=status==="connected"?"pulse":""; }
+}
+
+// TABS — FIX: explicit btn param, no implicit event object
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("scannerView").style.display     = tab==="scanner"     ? "grid"  : "none";
+  document.getElementById("leaderboardView").style.display = tab==="leaderboard" ? "block" : "none";
+  if (tab==="leaderboard") {
+    if (!frozen && !autoPaused) updateLeaderboard();
+    if (!autoPaused) setScanningBar(true);
+  }
+}
+
+// WEBSOCKET
+function connectWS() {
+  ws = new WebSocket("wss://ws.binaryws.com/websockets/v3?app_id=1089");
+  ws.onopen = () => {
+    setStatus("connected");
+    ws.send(JSON.stringify({ active_symbols:"brief", product_type:"basic" }));
+  };
+  ws.onmessage = evt => {
+    let res; try { res=JSON.parse(evt.data); } catch { return; }
+    if (res.error) return;
+    if (res.msg_type==="active_symbols") {
+      res.active_symbols.forEach(sym => {
+        const found=SYMBOLS.find(s=>s.id===sym.symbol);
+        if (found&&sym.pip) state[sym.symbol].pip=sym.pip;
+      });
+      SYMBOLS.forEach(s=>ws.send(JSON.stringify({ ticks:s.id, subscribe:1 })));
+    }
+    if (res.msg_type==="tick") {
+      const { tick }=res, symId=tick.symbol, d=state[symId];
+      if (!d) return;
+      const pip=d.pip||SYMBOLS.find(s=>s.id===symId).pip;
+      const newPrice=tick.quote, newDigit=getLastDigit(newPrice,pip), prevPrice=d.price;
+      const direction=prevPrice===null?null:newPrice>prevPrice?"rise":newPrice<prevPrice?"fall":d.direction;
+      let { signals,wins,losses,pendingSignal,lastSignalTick }=d;
+      const newTick=d.ticks+1;
+      if (pendingSignal!==null) { if(newDigit>4) wins++; else losses++; pendingSignal=null; }
+      const isEntry=direction==="rise"&&(newDigit===4||newDigit===5);
+      if (isEntry) { signals++; pendingSignal={barrier:4}; lastSignalTick=newTick; }
+      const recentDigits=[...d.recentDigits,newDigit].slice(-10);
+      state[symId]={...d,price:newPrice,prevPrice,lastDigit:newDigit,direction,pendingSignal,signals,wins,losses,ticks:newTick,recentDigits,connected:true,lastSignalTick,pip};
+      updateCard(symId);
+      updateHeader();
+      // Guard both freeze and autoPaused before refreshing leaderboard
+      if (currentTab==="leaderboard"&&!frozen&&!autoPaused) updateLeaderboard();
+    }
+  };
+  ws.onerror = ()=>setStatus("error");
+  ws.onclose = ()=>{
+    setStatus("disconnected");
+    SYMBOLS.forEach(s=>{ if(state[s.id]) state[s.id].connected=false; updateCard(s.id); });
+  };
+}
+
+// START
+function startScanning() {
+  document.getElementById("launch").style.display="none";
+  document.getElementById("app").style.display="flex";
+  resetState(); buildCards(); setStatus("connecting");
+  setScanningBar(false);
+  sessionStart=Date.now();
+  timerInterval=setInterval(()=>{ document.getElementById("hTimer").textContent=fmtTime(Math.floor((Date.now()-sessionStart)/1000)); },1000);
+  connectWS();
+}
+
+// STOP
+function stopScanning() {
+  if (ws) { ws.close(); ws=null; }
+  clearInterval(timerInterval); clearInterval(countdownInt);
+  autoPaused=false; currentPair=null; frozen=false;
+  setStatus("idle");
+  const btn=document.getElementById("freezeBtn");
+  if (btn) { btn.textContent="❄ FREEZE RANKINGS"; btn.classList.remove("frozen"); }
+  document.getElementById("tradeBanner").style.display="none";
+  setScanningBar(false);
+  document.getElementById("launch").style.display="flex";
+  document.getElementById("app").style.display="none";
+  document.getElementById("hTimer").textContent="00:00:00";
+}
+</script>
+</body>
+</html>

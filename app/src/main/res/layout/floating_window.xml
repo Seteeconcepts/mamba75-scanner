@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#050c14">
+
+    <!-- ── DRAG HANDLE / HEADER BAR ── -->
+    <LinearLayout
+        android:id="@+id/drag_handle"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:background="#0a1824"
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="8dp">
+
+        <!-- Drag grip indicator -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⠿"
+            android:textColor="#334155"
+            android:textSize="18sp"
+            android:layout_marginEnd="10dp" />
+
+        <!-- Logo text -->
+        <TextView
+            android:id="@+id/float_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="MAMBA75  SCANNER"
+            android:textColor="#38bdf8"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.12" />
+
+        <!-- Open main app -->
+        <ImageButton
+            android:id="@+id/btn_float_openapp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="@android:color/transparent"
+            android:contentDescription="Open app"
+            android:tint="#475569"
+            android:layout_marginEnd="2dp" />
+
+        <!-- Minimize / expand -->
+        <ImageButton
+            android:id="@+id/btn_float_minimize"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/arrow_down_float"
+            android:background="@android:color/transparent"
+            android:contentDescription="Minimize"
+            android:tint="#60a5fa"
+            android:layout_marginEnd="2dp" />
+
+        <!-- Close -->
+        <ImageButton
+            android:id="@+id/btn_float_close"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_delete"
+            android:background="@android:color/transparent"
+            android:contentDescription="Close scanner"
+            android:tint="#ef4444" />
+
+    </LinearLayout>
+
+    <!-- Thin accent line below header -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#0f2030" />
+
+    <!-- ── WEBVIEW CONTAINER ── -->
+    <FrameLayout
+        android:id="@+id/webview_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <WebView
+            android:id="@+id/floating_webview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#050c14" />
+
+    </FrameLayout>
+
+</LinearLayout>

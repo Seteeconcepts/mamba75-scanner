@@ -1,0 +1,41 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.mamba75.scanner'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId      "com.mamba75.scanner"
+        minSdk             23          // Android 6.0+ — covers 95%+ of active devices
+        targetSdk          34
+        versionCode        1
+        versionName        "3.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled   false
+            signingConfig   signingConfigs.debug   // use debug key for easy sideloading
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix  "-debug"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // Package the HTML asset without compression so WebView can load it
+    aaptOptions {
+        noCompress "html", "js", "css"
+    }
+}
+
+dependencies {
+    // No external dependencies — pure Android SDK + WebView
+}

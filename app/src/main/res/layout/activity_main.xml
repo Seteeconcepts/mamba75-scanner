@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#050c14"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Logo -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="48dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MAMBA75"
+                android:textColor="#38bdf8"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.12" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SCANNER"
+                android:textColor="#334155"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.25"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DIGIT OVER  ·  ENTRY: LAST DIGIT 4|5 + RISE"
+                android:textColor="#1e3a5f"
+                android:textSize="9sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.10"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#0f2030"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Status card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#0c1924"
+            android:padding="20dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="STATUS"
+                android:textColor="#334155"
+                android:textSize="9sp"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚫  SCANNER STOPPED"
+                android:textColor="#475569"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+
+        <!-- Launch button -->
+        <Button
+            android:id="@+id/btn_launch"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="▶  LAUNCH FLOATING SCANNER"
+            android:textColor="#000000"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.12"
+            android:backgroundTint="#38bdf8"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Stop button -->
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="■  STOP SCANNER"
+            android:textColor="#ef4444"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.12"
+            android:backgroundTint="#1a0a0a"
+            android:visibility="gone"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Instructions card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#0a1f14"
+            android:padding="20dp"
+            android:layout_marginBottom="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ℹ  HOW IT WORKS"
+                android:textColor="#4ade80"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/tv_instructions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap LAUNCH to start the scanner.\n\nThe scanner will appear as a floating overlay. You can then leave this app — the scanner stays on top of whatever you\'re doing, continuously monitoring all 10 Deriv volatility indices via WebSocket.\n\nA persistent notification keeps the scanner alive in the background."
+                android:textColor="#64748b"
+                android:textSize="12sp"
+                android:fontFamily="monospace"
+                android:lineSpacingMultiplier="1.5" />
+        </LinearLayout>
+
+        <!-- Version note -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="v3.0  ·  DERIV WEBSOCKET API"
+            android:textColor="#1e3a5f"
+            android:textSize="9sp"
+            android:fontFamily="monospace"
+            android:letterSpacing="0.12"
+            android:layout_marginBottom="24dp" />
+
+    </LinearLayout>
+</ScrollView>
