@@ -4,14 +4,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Dark background -->
     <path android:fillColor="#050c14" android:pathData="M0,0h108v108h-108z" />
-    <!-- Outer ring -->
     <path android:fillColor="#0f2030" android:pathData="M54,10 A44,44 0 1,1 53.99,10 Z" />
-    <!-- M letter -->
     <path android:fillColor="#38bdf8" android:strokeColor="#38bdf8" android:strokeWidth="0"
         android:pathData="M28,72 L28,40 L38,60 L54,36 L70,60 L80,40 L80,72 L74,72 L74,52 L62,70 L54,55 L46,70 L34,52 L34,72 Z" />
-    <!-- 75 text hint — small accent dot -->
-    <circle android:fillColor="#fbbf24" android:cx="76" cy="76" android:r="6" />
-    <circle android:fillColor="#050c14" android:cx="76" cy="76" android:r="3" />
+    <path android:fillColor="#fbbf24"
+        android:pathData="M70,76 A6,6 0 1,0 82,76 A6,6 0 1,0 70,76 Z" />
+    <path android:fillColor="#050c14"
+        android:pathData="M73,76 A3,3 0 1,0 79,76 A3,3 0 1,0 73,76 Z" />
 </vector>
